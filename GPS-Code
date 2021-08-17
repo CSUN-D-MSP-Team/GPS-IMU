@@ -1,0 +1,35 @@
+import time
+import datetime
+import serial
+#import string
+import pynmea2
+import RPi.GPIO as gpio
+ 
+gpio.setmode(gpio.BCM)
+
+port = "/dev/serial0" # the serial port to which the pi is connected.
+
+#create a serial object
+ser = serial.Serial(port, baudrate = 9600, timeout = 2)
+from datetime import datetime
+f = open("Lat-Long.txt", "a")
+while True:
+    data = ser.readline()
+    if data[0:6].decode('utf-8') == '$GPGGA': # the long and lat data are always contained in the GPGGA string of the NMEA data
+        msg = pynmea2.parse(data.decode('utf-8')) #parse the long and lat and print
+        time = str(datetime.now())
+        print(time)
+        latval = msg.lat
+#         res1 = isinstance(latval, str) # these are used to fix string to float problem
+#         if res1:
+        concatlat = "lat:" + str(float(latval) / 100)
+        print(concatlat)
+        longval = msg.lon
+#             res2 = isinstance(longval, str)
+#             if res2:
+        concatlong = "long:"+ str(float(longval) / 100)
+        print(concatlong)
+        f.write(time + "\n" + concatlat + "\n" + concatlong + "\n\n")
+
+        
+time.sleep(1)#wait a little before picking the next data.
